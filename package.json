@@ -1,0 +1,20 @@
+{
+  "name": "minigun-plugin-statsd",
+  "version": "1.0.0",
+  "description": "Statsd output plugin for Minigun",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/index.js"
+  },
+  "keywords": [
+    "statsd",
+    "minigun"
+  ],
+  "author": "Hassy Veldstra <h@veldstra.org>",
+  "license": "ISC",
+  "dependencies": {
+    "debug": "2.2.0",
+    "lodash": "3.10.1",
+    "lynx": "^0.2.0"
+  }
+}
