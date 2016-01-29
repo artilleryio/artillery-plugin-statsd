@@ -1,7 +1,7 @@
-# StatsD output for Minigun stats
+# StatsD output for Artillery stats
 
-This [Minigun](https://artillery.io/minigun) plugin allows you to publish the
-stats produced by Minigun to StatsD in real-time.
+This [Artillery](https://artillery.io/) plugin allows you to publish the
+stats produced by Artillery CLI to StatsD in real-time.
 
 ## Usage
 
@@ -15,7 +15,7 @@ Enable the plugin by adding it in your test script's `config.plugins` section:
       "statsd": {
         "host": "localhost",
         "port": 8125,
-        "prefix": "minigun"
+        "prefix": "artillery"
       }
     }
   }
@@ -62,9 +62,9 @@ This plugin can be used to publish metrics to [Librato](https://www.librato.com)
   }
   ```
 
-3. Run StatsD and use Minigun with this plugin.
+3. Run StatsD and use Artillery with this plugin.
 
 ## License
 
-**minigun-plugin-statsd** is distributed under the terms of the
+**artillery-plugin-statsd** is distributed under the terms of the
 [ISC](http://en.wikipedia.org/wiki/ISC_license) license.
