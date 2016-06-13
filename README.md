@@ -5,6 +5,14 @@ stats produced by Artillery CLI to StatsD in real-time.
 
 ## Usage
 
+### Install
+
+`npm install -g artillery-plugin-statsd` - if you've installed Artillery globally
+
+`npm install artillery-plugin-statsd` otherwise.
+
+### Use
+
 Enable the plugin by adding it in your test script's `config.plugins` section:
 
 ```javascript
