@@ -13,12 +13,14 @@ function StatsDPlugin(config, ee) {
   var host = config.plugins.statsd.host || 'localhost';
   var port = config.plugins.statsd.port || 8125;
   var prefix = config.plugins.statsd.prefix || 'minigun';
+  var closingTimeout = config.plugins.statsd.timeout || 0;
   // This is used for testing the plugin interface
   var enableUselessReporting = config.plugins.statsd.enableUselessReporting;
 
   var metrics = new Lynx(host, port);
 
-  ee.on('stats', function(stats) {
+  ee.on('stats', function(statsObject) {
+    var stats = statsObject.report()
     debug('stats');
 
     if (enableUselessReporting) {
@@ -42,7 +44,13 @@ function StatsDPlugin(config, ee) {
 
   ee.on('done', function(stats) {
     debug('done');
-    metrics.close();
+    if (closingTimeout > 0) {
+      setTimeout(function () {
+        metrics.close();
+      }, closingTimeout);
+    } else {
+      metrics.close();  
+    }
   });
 
   return this;
