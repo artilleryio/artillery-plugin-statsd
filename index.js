@@ -12,7 +12,7 @@ function StatsDPlugin(config, ee) {
 
   var host = config.plugins.statsd.host || 'localhost';
   var port = config.plugins.statsd.port || 8125;
-  var prefix = config.plugins.statsd.prefix || 'minigun';
+  var prefix = config.plugins.statsd.prefix || 'artillery';
   var closingTimeout = config.plugins.statsd.timeout || 0;
   // This is used for testing the plugin interface
   var enableUselessReporting = config.plugins.statsd.enableUselessReporting;
@@ -49,7 +49,7 @@ function StatsDPlugin(config, ee) {
         metrics.close();
       }, closingTimeout);
     } else {
-      metrics.close();  
+      metrics.close();
     }
   });
 
