@@ -29,10 +29,10 @@ function StatsDPlugin(config, ee) {
       self._report.push({ timestamp: stats.timestamp, value: 'test' });
     }
 
-    metrics.gauge(prefix + '.scenariosCreated', stats.scenariosCreated);
-    metrics.gauge(prefix + '.scenariosCompleted', stats.scenariosCompleted);
-    metrics.gauge(prefix + '.requestsCompleted', stats.requestsCompleted);
-    metrics.gauge(prefix + '.concurrency', stats.concurrency);
+    metrics.gauge(prefix + '.scenariosCreated', stats.scenariosCreated || -1);
+    metrics.gauge(prefix + '.scenariosCompleted', stats.scenariosCompleted || -1);
+    metrics.gauge(prefix + '.requestsCompleted', stats.requestsCompleted || -1);
+    metrics.gauge(prefix + '.concurrency', stats.concurrency || -1);
 
     metrics.gauge(prefix + '.latency.min', stats.latency.min || -1);
     metrics.gauge(prefix + '.latency.max', stats.latency.max || -1);
