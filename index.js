@@ -10,6 +10,8 @@ function StatsDPlugin(config, ee) {
   var self = this;
   self._report = [];
 
+  debug('StatsD Configuration: '+JSON.stringify(config.plugins.statsd));
+
   var host = config.plugins.statsd.host || 'localhost';
   var port = config.plugins.statsd.port || 8125;
   var prefix = config.plugins.statsd.prefix || 'artillery';
@@ -21,15 +23,16 @@ function StatsDPlugin(config, ee) {
 
   ee.on('stats', function(statsObject) {
     var stats = statsObject.report()
-    debug('stats');
+    debug('Stats Report from Artillery: '+JSON.stringify(stats));
 
     if (enableUselessReporting) {
       self._report.push({ timestamp: stats.timestamp, value: 'test' });
     }
 
-    metrics.gauge(prefix + '.scenariosCreated', stats.scenariosCreated);
-    metrics.gauge(prefix + '.scenariosCompleted', stats.scenariosCompleted);
-    metrics.gauge(prefix + '.requestsCompleted', stats.requestsCompleted);
+    metrics.gauge(prefix + '.scenariosCreated', stats.scenariosCreated || -1);
+    metrics.gauge(prefix + '.scenariosCompleted', stats.scenariosCompleted || -1);
+    metrics.gauge(prefix + '.requestsCompleted', stats.requestsCompleted || -1);
+    metrics.gauge(prefix + '.concurrency', stats.concurrency || -1);
 
     metrics.gauge(prefix + '.latency.min', stats.latency.min || -1);
     metrics.gauge(prefix + '.latency.max', stats.latency.max || -1);
@@ -37,8 +40,21 @@ function StatsDPlugin(config, ee) {
     metrics.gauge(prefix + '.latency.p95', stats.latency.p95 || -1);
     metrics.gauge(prefix + '.latency.p99', stats.latency.p99 || -1);
 
+    metrics.gauge(prefix + '.rps.count', stats.rps.count || -1);
+    metrics.gauge(prefix + '.rps.mean', stats.rps.mean || -1);
+
+    metrics.gauge(prefix + '.scenarioDuration.min', stats.scenarioDuration.min || -1);
+    metrics.gauge(prefix + '.scenarioDuration.max', stats.scenarioDuration.max || -1);
+    metrics.gauge(prefix + '.scenarioDuration.median', stats.scenarioDuration.median || -1);
+    metrics.gauge(prefix + '.scenarioDuration.p95', stats.scenarioDuration.p95 || -1);
+    metrics.gauge(prefix + '.scenarioDuration.p99', stats.scenarioDuration.p99 || -1);
+
     l.each(stats.errors, function(count, errName) {
-      metrics.gauge(prefix + '.errors.' + errName, count);
+      metrics.gauge(prefix + '.errors.' + errName, count || -1);
+    });
+
+    l.each(stats.codes, function(count, codeName) {
+      metrics.gauge(prefix + '.codes.' + codeName, count || -1);
     });
   });
 
