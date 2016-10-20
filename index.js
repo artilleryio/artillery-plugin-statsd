@@ -10,6 +10,8 @@ function StatsDPlugin(config, ee) {
   var self = this;
   self._report = [];
 
+  debug('StatsD Configuration: '+JSON.stringify(config.plugins.statsd));
+
   var host = config.plugins.statsd.host || 'localhost';
   var port = config.plugins.statsd.port || 8125;
   var prefix = config.plugins.statsd.prefix || 'artillery';
@@ -21,7 +23,7 @@ function StatsDPlugin(config, ee) {
 
   ee.on('stats', function(statsObject) {
     var stats = statsObject.report()
-    debug('stats');
+    debug('Stats Report from Artillery: '+JSON.stringify(stats));
 
     if (enableUselessReporting) {
       self._report.push({ timestamp: stats.timestamp, value: 'test' });
