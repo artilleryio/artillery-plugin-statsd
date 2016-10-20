@@ -40,7 +40,11 @@ function StatsDPlugin(config, ee) {
     metrics.gauge(prefix + '.latency.p99', stats.latency.p99 || -1);
 
     l.each(stats.errors, function(count, errName) {
-      metrics.gauge(prefix + '.errors.' + errName, count);
+      metrics.gauge(prefix + '.errors.' + errName, count || -1);
+    });
+
+    l.each(stats.codes, function(count, codeName) {
+      metrics.gauge(prefix + '.codes.' + codeName, count || -1);
     });
   });
 
