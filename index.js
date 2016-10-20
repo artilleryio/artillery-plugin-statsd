@@ -32,12 +32,22 @@ function StatsDPlugin(config, ee) {
     metrics.gauge(prefix + '.scenariosCreated', stats.scenariosCreated);
     metrics.gauge(prefix + '.scenariosCompleted', stats.scenariosCompleted);
     metrics.gauge(prefix + '.requestsCompleted', stats.requestsCompleted);
+    metrics.gauge(prefix + '.concurrency', stats.concurrency);
 
     metrics.gauge(prefix + '.latency.min', stats.latency.min || -1);
     metrics.gauge(prefix + '.latency.max', stats.latency.max || -1);
     metrics.gauge(prefix + '.latency.median', stats.latency.median || -1);
     metrics.gauge(prefix + '.latency.p95', stats.latency.p95 || -1);
     metrics.gauge(prefix + '.latency.p99', stats.latency.p99 || -1);
+
+    metrics.gauge(prefix + '.rps.count', stats.rps.count || -1);
+    metrics.gauge(prefix + '.rps.mean', stats.rps.mean || -1);
+
+    metrics.gauge(prefix + '.scenarioDuration.min', stats.scenarioDuration.min || -1);
+    metrics.gauge(prefix + '.scenarioDuration.max', stats.scenarioDuration.max || -1);
+    metrics.gauge(prefix + '.scenarioDuration.median', stats.scenarioDuration.median || -1);
+    metrics.gauge(prefix + '.scenarioDuration.p95', stats.scenarioDuration.p95 || -1);
+    metrics.gauge(prefix + '.scenarioDuration.p99', stats.scenarioDuration.p99 || -1);
 
     l.each(stats.errors, function(count, errName) {
       metrics.gauge(prefix + '.errors.' + errName, count || -1);
