@@ -14,8 +14,14 @@ function StatsDPlugin(config, ee) {
 
   var host = config.plugins.statsd.host || 'localhost';
   var port = config.plugins.statsd.port || 8125;
-  var prefix = config.plugins.statsd.prefix || 'artillery';
+  var globalPrefix = config.plugins.statsd.prefix || 'artillery';
   var closingTimeout = config.plugins.statsd.timeout || 0;
+  var defaultValue = config.plugins.statsd.default || 0;
+  var skipList = ['timestamp', 'latencies']; //always skip these
+  // Add any values passed in by the user
+  if (l.isString(config.plugins.statsd.skipList)){
+    skipList = skipList.concat(config.plugins.statsd.skipList.split(','));
+  }
   // This is used for testing the plugin interface
   var enableUselessReporting = config.plugins.statsd.enableUselessReporting;
 
@@ -29,33 +35,37 @@ function StatsDPlugin(config, ee) {
       self._report.push({ timestamp: stats.timestamp, value: 'test' });
     }
 
-    metrics.gauge(prefix + '.scenariosCreated', stats.scenariosCreated || -1);
-    metrics.gauge(prefix + '.scenariosCompleted', stats.scenariosCompleted || -1);
-    metrics.gauge(prefix + '.requestsCompleted', stats.requestsCompleted || -1);
-    metrics.gauge(prefix + '.concurrency', stats.concurrency || -1);
+    // Kick off gauging function using the globalPrefix
+    gaugeStats(globalPrefix, stats);
 
-    metrics.gauge(prefix + '.latency.min', stats.latency.min || -1);
-    metrics.gauge(prefix + '.latency.max', stats.latency.max || -1);
-    metrics.gauge(prefix + '.latency.median', stats.latency.median || -1);
-    metrics.gauge(prefix + '.latency.p95', stats.latency.p95 || -1);
-    metrics.gauge(prefix + '.latency.p99', stats.latency.p99 || -1);
+    // Parses the stats object and sub objects to gauge stats
+    function gaugeStats(name, value){
+      // Skip logic
+      if(l.contains(skipList, name.replace(globalPrefix+'.', ''))){
+        debug(name+' skipped');
+        return;
+      }
 
-    metrics.gauge(prefix + '.rps.count', stats.rps.count || -1);
-    metrics.gauge(prefix + '.rps.mean', stats.rps.mean || -1);
-
-    metrics.gauge(prefix + '.scenarioDuration.min', stats.scenarioDuration.min || -1);
-    metrics.gauge(prefix + '.scenarioDuration.max', stats.scenarioDuration.max || -1);
-    metrics.gauge(prefix + '.scenarioDuration.median', stats.scenarioDuration.median || -1);
-    metrics.gauge(prefix + '.scenarioDuration.p95', stats.scenarioDuration.p95 || -1);
-    metrics.gauge(prefix + '.scenarioDuration.p99', stats.scenarioDuration.p99 || -1);
-
-    l.each(stats.errors, function(count, errName) {
-      metrics.gauge(prefix + '.errors.' + errName, count || -1);
-    });
-
-    l.each(stats.codes, function(count, codeName) {
-      metrics.gauge(prefix + '.codes.' + codeName, count || -1);
-    });
+      // Recursively loop through objects with sub values such as latency/errors
+      if(l.size(value) > 0){
+        l.each(value, function(subValue, subName) {
+          gaugeStats(name+'.'+subName, subValue);
+        });
+      }
+      // Hey, it is an actual stat!
+      else if(l.isFinite(value)){
+        metrics.gauge(name, value);
+      }
+      // Artillery is sending null or NaN.
+      else if(l.isNaN(value) || l.isNull(value)){
+        metrics.gauge(name, defaultValue);
+      }
+      // Empty object such as 'errors' when there are not actually errors
+      else{
+        debug(name+' has nothing to report');
+        // no-op
+      }
+    }
   });
 
   ee.on('done', function(stats) {

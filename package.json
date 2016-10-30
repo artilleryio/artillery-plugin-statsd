@@ -11,10 +11,16 @@
     "minigun"
   ],
   "author": "Hassy Veldstra <h@veldstra.org>",
+  "contributors": [
+    "Anthony DiPirro (https://github.com/adipirro)"
+  ],
   "license": "ISC",
   "dependencies": {
     "debug": "2.2.0",
     "lodash": "3.10.1",
     "lynx": "^0.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.9.0"
   }
 }
