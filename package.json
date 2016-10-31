@@ -4,7 +4,7 @@
   "description": "Statsd output plugin for Artillery",
   "main": "index.js",
   "scripts": {
-    "test": "node test/index.js"
+    "test": "node test/index.js | tap-spec"
   },
   "keywords": [
     "statsd",
@@ -21,6 +21,8 @@
     "lynx": "^0.2.0"
   },
   "devDependencies": {
-    "eslint": "^3.9.0"
+    "eslint": "^3.9.0",
+    "tap-spec": "^4.1.1",
+    "tape": "^4.6.2"
   }
 }
