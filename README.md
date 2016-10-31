@@ -35,6 +35,8 @@ Enable the plugin by adding it in your test script's `config.plugins` section:
 
 ### Published metrics
 
+By default, all stats from artillery are reported. This includes any custom stats you may have in place. As of `artillery@1.5.0-17`, the metrics you can expect to see are as follows.
+
 - `scenariosCreated`
 - `scenariosCompleted`
 - `requestsCompleted`
@@ -43,6 +45,15 @@ Enable the plugin by adding it in your test script's `config.plugins` section:
 - `latency.median`
 - `latency.p95`
 - `latency.p99`
+- `rps.count`
+- `rps.mean`
+- `scenarioDuration.min`
+- `scenarioDuration.max`
+- `scenarioDuration.median`
+- `scenarioDuration.p95`
+- `scenarioDuration.p99`
+- `scenarioCounts.0`, `scenarioCounts.0` etc
+- `codes.200`, `codes.301` etc
 - `errors.ECONNREFUSED`, `errors.ETIMEDOUT` etc
 
 ### Using with Librato
