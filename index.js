@@ -4,66 +4,39 @@ var Lynx = require('lynx');
 var l = require('lodash');
 var debug = require('debug')('plugins:statsd');
 
-module.exports = StatsDPlugin;
-
-function StatsDPlugin(config, ee) {
+function StatsDPlugin(rawConfig, ee) {
   var self = this;
   self._report = [];
 
-  debug('StatsD Configuration: '+JSON.stringify(config.plugins.statsd));
+  var config = _reconcileConfigs(rawConfig);
+  debug('Resulting StatsD Configuration: '+JSON.stringify(config));
 
-  var host = config.plugins.statsd.host || 'localhost';
-  var port = config.plugins.statsd.port || 8125;
-  var prefix = config.plugins.statsd.prefix || 'artillery';
-  var closingTimeout = config.plugins.statsd.timeout || 0;
-  // This is used for testing the plugin interface
-  var enableUselessReporting = config.plugins.statsd.enableUselessReporting;
-
-  var metrics = new Lynx(host, port);
+  var metrics = new Lynx(config.host, config.port);
 
   ee.on('stats', function(statsObject) {
     var stats = statsObject.report()
     debug('Stats Report from Artillery: '+JSON.stringify(stats));
 
-    if (enableUselessReporting) {
+    if (config.enableUselessReporting) {
       self._report.push({ timestamp: stats.timestamp, value: 'test' });
     }
 
-    metrics.gauge(prefix + '.scenariosCreated', stats.scenariosCreated || -1);
-    metrics.gauge(prefix + '.scenariosCompleted', stats.scenariosCompleted || -1);
-    metrics.gauge(prefix + '.requestsCompleted', stats.requestsCompleted || -1);
-    metrics.gauge(prefix + '.concurrency', stats.concurrency || -1);
+    var flattenedStats = _flattenStats('',stats, config.skipList, config.defaultValue);
+    debug('Flattened Stats Report: '+JSON.stringify(flattenedStats));
 
-    metrics.gauge(prefix + '.latency.min', stats.latency.min || -1);
-    metrics.gauge(prefix + '.latency.max', stats.latency.max || -1);
-    metrics.gauge(prefix + '.latency.median', stats.latency.median || -1);
-    metrics.gauge(prefix + '.latency.p95', stats.latency.p95 || -1);
-    metrics.gauge(prefix + '.latency.p99', stats.latency.p99 || -1);
-
-    metrics.gauge(prefix + '.rps.count', stats.rps.count || -1);
-    metrics.gauge(prefix + '.rps.mean', stats.rps.mean || -1);
-
-    metrics.gauge(prefix + '.scenarioDuration.min', stats.scenarioDuration.min || -1);
-    metrics.gauge(prefix + '.scenarioDuration.max', stats.scenarioDuration.max || -1);
-    metrics.gauge(prefix + '.scenarioDuration.median', stats.scenarioDuration.median || -1);
-    metrics.gauge(prefix + '.scenarioDuration.p95', stats.scenarioDuration.p95 || -1);
-    metrics.gauge(prefix + '.scenarioDuration.p99', stats.scenarioDuration.p99 || -1);
-
-    l.each(stats.errors, function(count, errName) {
-      metrics.gauge(prefix + '.errors.' + errName, count || -1);
+    l.each(flattenedStats, function(value, name) {
+      debug('Reporting: '+name+'  '+value)
+      metrics.gauge(config.prefix+'.'+name, value || config.defaultValue);
     });
 
-    l.each(stats.codes, function(count, codeName) {
-      metrics.gauge(prefix + '.codes.' + codeName, count || -1);
-    });
   });
 
   ee.on('done', function(stats) {
     debug('done');
-    if (closingTimeout > 0) {
+    if (config.closingTimeout > 0) {
       setTimeout(function () {
         metrics.close();
-      }, closingTimeout);
+      }, config.closingTimeout);
     } else {
       metrics.close();
     }
@@ -71,6 +44,7 @@ function StatsDPlugin(config, ee) {
 
   return this;
 }
+
 
 StatsDPlugin.prototype.report = function report() {
   if (this._report.length === 0) {
@@ -83,3 +57,72 @@ StatsDPlugin.prototype.report = function report() {
     return this._report;
   }
 };
+
+// Parses the stats object and sub objects to gauge stats
+function _flattenStats(prefix, value, skipList, defaultValue){
+  var flattenedStats = {};
+  // Skip logic
+  if(l.contains(skipList, prefix)){
+    debug(prefix+' skipped');
+    return {};
+  }
+
+  // Recursively loop through objects with sub values such as latency/errors
+  if(l.size(value) > 0){
+    l.each(value, function(subValue, subName) {
+      var newPrefix = prefix;
+      if(newPrefix==='') {
+        newPrefix = subName;
+      }
+      else {
+        newPrefix += '.'+subName;
+      }
+      flattenedStats =  l.merge(flattenedStats, _flattenStats(newPrefix, subValue, skipList, defaultValue));
+    });
+  }
+  // Hey, it is an actual stat!
+  else if(l.isFinite(value)){
+    flattenedStats = l.merge(flattenedStats,{[prefix]: value});
+  }
+  // Artillery is sending null or NaN.
+  else if(l.isNaN(value) || l.isNull(value)){
+    flattenedStats = l.merge(flattenedStats,{[prefix]: defaultValue});
+  }
+  // Empty object such as 'errors' when there are not actually errors
+  else{
+    debug(prefix+' has nothing to report');
+    // no-op
+  }
+  return flattenedStats;
+}
+
+function _generateSkipList(input){
+  let skipList = ['timestamp', 'latencies']; //always skip these
+
+  // Add any values passed in by the user
+  if (l.isString(input)){
+    let inputWithoutSpaces = input.replace(/\s/g,'');
+    skipList = skipList.concat(inputWithoutSpaces.split(','));
+  }
+  return skipList;
+}
+
+function _reconcileConfigs(config){
+  return {
+     host: config.plugins.statsd.host || 'localhost',
+     port: config.plugins.statsd.port || 8125,
+     prefix: config.plugins.statsd.prefix || 'artillery',
+     closingTimeout: config.plugins.statsd.timeout || 0,
+     defaultValue: config.plugins.statsd.default || 0,
+     skipList: _generateSkipList(config.plugins.statsd.skipList),
+    // This is used for testing the plugin interface
+     enableUselessReporting: config.plugins.statsd.enableUselessReporting
+  }
+}
+
+module.exports = StatsDPlugin;
+
+// Exported for testing purposes...
+module.exports._generateSkipList = _generateSkipList;
+module.exports._flattenStats = _flattenStats;
+module.exports._reconcileConfigs = _reconcileConfigs;

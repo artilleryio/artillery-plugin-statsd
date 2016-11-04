@@ -35,6 +35,8 @@ Enable the plugin by adding it in your test script's `config.plugins` section:
 
 ### Published metrics
 
+By default, all stats from artillery are reported. This includes any custom stats you may have in place. As of `artillery@1.5.0-17`, the metrics you can expect to see are as follows.
+
 - `scenariosCreated`
 - `scenariosCompleted`
 - `requestsCompleted`
@@ -43,7 +45,31 @@ Enable the plugin by adding it in your test script's `config.plugins` section:
 - `latency.median`
 - `latency.p95`
 - `latency.p99`
+- `rps.count`
+- `rps.mean`
+- `scenarioDuration.min`
+- `scenarioDuration.max`
+- `scenarioDuration.median`
+- `scenarioDuration.p95`
+- `scenarioDuration.p99`
+- `scenarioCounts.0`, `scenarioCounts.0` etc
+- `codes.200`, `codes.301` etc
 - `errors.ECONNREFUSED`, `errors.ETIMEDOUT` etc
+- `matches`
+- `concurrency`
+- `pendingRequests`
+
+Metrics will be added or removed based on what artillery decides to send.
+
+If a metric is null or cannot be resolved to a number, the default value of `0` is sent. You can change the default value in the configuration by passing in the property `default`. Example:
+
+`"default": 100000` - Metrics are sent with gauges so avoid [negative numbers](https://github.com/etsy/statsd/blob/master/docs/metric_types.md#gauges).
+
+Metrics can be skipped by passing in an additional configuration property `skipList`. Skip list values can look like the following:
+
+- `"skipList": "scenarioDuration"` - would skip all `scenarioDuration` metrics
+- `"skipList": "latency.max"` - would skip only the `latency.max` metric
+- `"skipList": "scenarioDuration, latency.max"` - a comma separated list can be used to pass in multiple values.
 
 ### Using with Librato
 
