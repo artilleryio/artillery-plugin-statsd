@@ -26,7 +26,11 @@ function StatsDPlugin(rawConfig, ee) {
 
     l.each(flattenedStats, function(value, name) {
       debug('Reporting: '+name+'  '+value)
-      metrics.gauge(config.prefix+'.'+name, value || config.defaultValue);
+      var tagString = _.reduce(config.influx_tags, (result, tagValue, tagName) => {
+          result += ',' + tagName + "=" + tagValue;
+          return result;
+      }, "");
+      metrics.gauge(config.prefix+'.'+name + tagString, value || config.defaultValue);
     });
 
   });
