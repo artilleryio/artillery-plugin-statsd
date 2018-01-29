@@ -24,9 +24,28 @@ function StatsDPlugin(rawConfig, ee) {
     var flattenedStats = _flattenStats('',stats, config.skipList, config.defaultValue);
     debug('Flattened Stats Report: '+JSON.stringify(flattenedStats));
 
+    var metricsToIncrement = [
+      'rps.count',
+      'codes.200',
+      'codes.502',
+      'codes.503',
+      'codes.504',
+      'scenariosCreated',
+      'scenariosCompleted',
+      'requestsCompleted',
+      'errors.ECONNREFUSED',
+      'errors.ETIMEDOUT'
+    ]
+
     l.each(flattenedStats, function(value, name) {
       debug('Reporting: '+name+'  '+value)
-      metrics.gauge(config.prefix+'.'+name, value || config.defaultValue);
+
+      if (metricsToIncrement.indexOf(name) > -1) {
+        metrics.count(config.prefix+'.'+name, value || 0);
+      } else {
+        metrics.gauge(config.prefix+'.'+name, value || config.defaultValue);
+      }
+
     });
 
   });
