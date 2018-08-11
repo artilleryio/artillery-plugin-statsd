@@ -62,7 +62,7 @@ StatsDPlugin.prototype.report = function report() {
 function _flattenStats(prefix, value, skipList, defaultValue){
   var flattenedStats = {};
   // Skip logic
-  if(l.contains(skipList, prefix)){
+  if(l.includes(skipList, prefix)){
     debug(prefix+' skipped');
     return {};
   }
