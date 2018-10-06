@@ -23,7 +23,11 @@ Enable the plugin by adding it in your test script's `config.plugins` section:
       "statsd": {
         "host": "localhost",
         "port": 8125,
-        "prefix": "artillery"
+        "prefix": "artillery",
+        "influx_tags": { // optional: reports to influxDB will be tagged with those tags
+            "tag1": "value1",
+            "tag2": "value2",
+        }
       }
     }
   }
