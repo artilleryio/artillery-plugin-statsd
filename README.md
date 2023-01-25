@@ -1,3 +1,7 @@
+# DEPRECATED
+
+Please use the official [`artillery-plugin-publish-metrics`](https://www.artillery.io/docs/guides/plugins/plugin-publish-metrics#statsd) plugin.
+
 # StatsD output for Artillery stats
 
 This [Artillery](https://artillery.io/) plugin allows you to publish the
